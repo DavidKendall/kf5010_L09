@@ -11,6 +11,8 @@ static unsigned int front = 0;
 static unsigned int back = 0;
 static unsigned int nFull = 0;
 
+static void buffer_print(void);
+
 void put_buffer(message_t const * const msg) {
   buffer[back] = *msg;
   back = (back + 1) % BUF_SIZE;
@@ -50,14 +52,37 @@ void safe_buffer_get(message_t * const msg) {
   pthread_mutex_unlock(&bufMutex);
 }
 
-void safe_buffer_print(void) {
-  int i;
+void safe_buffer_put_print(message_t const * const msg) {
   pthread_mutex_lock(&bufMutex);
+  while (nFull == BUF_SIZE) {
+    pthread_cond_wait(&freeSlot, &bufMutex);
+  }
+  put_buffer(msg);
+  nFull += 1;
+  pthread_cond_signal(&fullSlot);
+  buffer_print();
+  pthread_mutex_unlock(&bufMutex);
+}
+
+
+void safe_buffer_get_print(message_t * const msg) {
+  pthread_mutex_lock(&bufMutex);
+  while (nFull == 0) {
+    pthread_cond_wait(&fullSlot, &bufMutex);
+  }
+  get_buffer(msg);
+  nFull -= 1;
+  pthread_cond_signal(&freeSlot);
+  buffer_print();
+  pthread_mutex_unlock(&bufMutex);
+}
+
+static void buffer_print(void) {
+  int i;
   printf("|");
   for (i=0; i < nFull; i+=1) {
     printf("|%02ld, %03d|", buffer[(front + i) % BUF_SIZE].id, buffer[(front+i) % BUF_SIZE].data[0]);
   }
   printf("|\n");
-  pthread_mutex_unlock(&bufMutex);
 }
 

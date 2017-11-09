@@ -16,6 +16,7 @@ void get_buffer(message_t * const);
 void safe_buffer_init(void);
 void safe_buffer_put(message_t const * const msg);
 void safe_buffer_get(message_t * const msg);
-void safe_buffer_print(void);
+void safe_buffer_put_print(message_t const * const msg);
+void safe_buffer_get_print(message_t * const msg);
 
 #endif

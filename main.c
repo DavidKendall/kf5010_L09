@@ -68,8 +68,7 @@ static void *producer(void *arg) {
   for (int n = 0; n < N_ITERATIONS; n+=1) {
     random_delay_producer(&rand_state);
     msg.data[0] = random_value(&rand_state);
-    safe_buffer_put(&msg);
-    safe_buffer_print();
+    safe_buffer_put_print(&msg);
   }
   pthread_exit(NULL);
 }
@@ -89,8 +88,7 @@ static void *consumer(void *arg) {
   random_init((long)arg, &rand_state);
   for (int n = 0; n < N_ITERATIONS; n+=1) {
     random_delay_consumer(&rand_state);
-    safe_buffer_get(&msg);
-    safe_buffer_print();
+    safe_buffer_get_print(&msg);
   }
   pthread_exit(NULL);
 }
