@@ -40,6 +40,7 @@ static unsigned int random_value(struct drand48_data *rand_state);
 static unsigned int random_int(struct drand48_data *rand_state, int l, int u);
 
 static pthread_t thread[N_PRODUCERS + N_CONSUMERS];
+static pthread_barrier_t barrier;
 
 int main(int argc, char *argv[]) {
   safe_buffer_init();
@@ -57,6 +58,10 @@ static void *producer(void *arg) {
 
   struct drand48_data rand_state;
   message_t msg;
+  int rc;
+
+  rc = pthread_barrier_wait(&barrier);
+  assert(rc == PTHREAD_BARRIER_SERIAL_THREAD || rc == 0);
 
   msg.id = (long)(arg);
   random_init(msg.id, &rand_state);
@@ -76,6 +81,10 @@ static void *producer(void *arg) {
 static void *consumer(void *arg) {
   struct drand48_data rand_state;
   message_t msg;
+  int rc;
+
+  rc = pthread_barrier_wait(&barrier);
+  assert(rc == PTHREAD_BARRIER_SERIAL_THREAD || rc == 0);
 
   random_init((long)arg, &rand_state);
   for (int n = 0; n < N_ITERATIONS; n+=1) {
@@ -89,6 +98,9 @@ static void *consumer(void *arg) {
 
 static void begin_threads(void) {
   int rc;
+
+  rc = pthread_barrier_init(&barrier, NULL, N_PRODUCERS + N_CONSUMERS);
+  assert(rc == 0);
 
   for (long i=0; i<N_PRODUCERS; i+=1) {
     rc = pthread_create(&thread[i], NULL,
@@ -110,6 +122,8 @@ static void end_threads(void) {
     rc = pthread_join(thread[i], NULL);
     assert(rc == 0);
   }
+  rc = pthread_barrier_destroy(&barrier);
+  assert(rc == 0);
 }
 
 static void random_init(long id, struct drand48_data *rand_state) {
