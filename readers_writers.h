@@ -1,5 +1,7 @@
-#ifndef __BUFFER_H
-#define __BUFFER_H
+#ifndef __READERS_WRITERS_H
+#define __READERS_WRITERS_H
+
+
 
 typedef void rw_func_t(void *arg);
 
