@@ -1,3 +1,8 @@
+/**
+ * A monitor solution to the readers/writers problem.
+ * Note that this solution may suffer from *reader* starvation
+ * rather than *writer* starvation
+ */
 #include <pthread.h>
 #include <stdio.h>
 #include "readers_writers.h"
@@ -55,7 +60,8 @@ void rw_read(rw_func_t do_read, void *arg) {
   do_read(arg);
 
   pthread_mutex_lock(&monitorMutex);
-  if ((ar == 0) && (wr > 0)) {
+  ar -= 1;
+  if ((ar == 0) && (ww > 0)) {
     pthread_cond_signal(&okToWrite);
   }
   pthread_mutex_unlock(&monitorMutex);
